@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CofradiUS - Rastreador GPS en Vivo</title>
+    
+    <!-- Google Fonts: Outfit for a modern look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Contenedor del Mapa -->
+    <div id="map"></div>
+
+    <!-- Panel Flotante Glassmorphism -->
+    <div id="floating-panel" class="glass-panel">
+        <div class="header">
+            <h1 class="title">CofradiUS</h1>
+            <div class="live-indicator">
+                <span class="dot"></span> EN VIVO
+            </div>
+        </div>
+        <h2 class="subtitle">Paso único</h2>
+        <div class="status-container">
+            <p class="status-label">Última actualización:</p>
+            <p class="status"><span id="time-counter">Conectando...</span></p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <!-- Supabase JS v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- App Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

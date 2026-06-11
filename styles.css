@@ -1,0 +1,132 @@
+/* Reset y Estilos Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden; /* Prevenir scroll accidental */
+    background-color: #f8f9fa;
+}
+
+/* Contenedor del Mapa */
+#map {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; /* El mapa queda al fondo */
+}
+
+/* Panel Flotante (Glassmorphism) */
+.glass-panel {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 1000; /* Por encima del mapa */
+    
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    
+    color: #1a1a1a;
+    min-width: 280px;
+    transition: transform 0.3s ease;
+}
+
+/* Encabezado del Panel */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+/* Indicador de "En Vivo" */
+.live-indicator {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #e63946;
+    background: rgba(230, 57, 70, 0.1);
+    padding: 4px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background-color: #e63946;
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(230, 57, 70, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(230, 57, 70, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(230, 57, 70, 0); }
+}
+
+/* Contenedor de Estado (Última actualización) */
+.status-container {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.status-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #777;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #2b5876;
+}
+
+/* Responsive: Mobile-first adaptaciones */
+@media (max-width: 600px) {
+    .glass-panel {
+        top: auto;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        right: auto;
+        width: 90%;
+        padding: 20px;
+    }
+}
