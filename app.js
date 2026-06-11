@@ -5,7 +5,7 @@ const SUPABASE_URL = 'https://khzsxoazhxapuoxwuvns.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_A6yYq2Pcee64gdx_w3t-cQ_yjISV7kJ';
 
 // Inicializar cliente Supabase
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // 2. Inicialización del Mapa Leaflet
 // Centro por defecto, se actualizará al cargar los datos
@@ -67,7 +67,7 @@ async function loadPlannedRoute() {
 // 5. Cargar Datos Históricos (Estela inicial)
 async function loadInitialData() {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('posicion_real')
             .select('*')
             .order('created_at', { ascending: true });
@@ -105,7 +105,7 @@ async function loadInitialData() {
 
 // 6. Tiempo Real (WebSockets con Supabase)
 function subscribeToRealTime() {
-    supabase
+    supabaseClient
         .channel('public:posicion_real')
         .on(
             'postgres_changes', 
