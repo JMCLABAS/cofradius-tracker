@@ -7,11 +7,9 @@ const SUPABASE_ANON_KEY = 'sb_publishable_A6yYq2Pcee64gdx_w3t-cQ_yjISV7kJ';
 // Inicializar cliente Supabase
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 2. Inicialización del Mapa Leaflet
-// Centro por defecto, se actualizará al cargar los datos
-const map = L.map('map', {
-    zoomControl: false // Ocultamos el control por defecto para moverlo si es necesario
-}).setView([37.3891, -5.9845], 15);
+// Inicialización del Mapa Leaflet
+// Centro por defecto en la Catedral de Sevilla (mientras carga o busca datos)
+const map = L.map('map', { zoomControl: false }).setView([37.3858, -5.9931], 16);
 
 // Añadimos el control de zoom en otra esquina para que no pise el panel
 L.control.zoom({ position: 'topleft' }).addTo(map);
