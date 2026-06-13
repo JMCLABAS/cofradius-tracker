@@ -13,7 +13,7 @@ body, html {
     background-color: #f8f9fa;
 }
 
-/* Contenedor del Mapa con Filtro Pergamino */
+/* Contenedor del Mapa */
 #map {
     width: 100%;
     height: 100%;
@@ -21,18 +21,16 @@ body, html {
     top: 0;
     left: 0;
     z-index: 1; /* El mapa queda al fondo */
-    background-color: #cbb593; /* Color base marrón/pergamino más oscuro */
 }
 
-/* Efecto Sepia/Pergamino a la capa del mapa usando mezcla de color */
-.leaflet-layer {
-    mix-blend-mode: multiply;
-    filter: contrast(1.3) grayscale(0.6);
-    opacity: 0.9;
+/* Evitar que Leaflet ponga el fondo gris claro por defecto, ponemos uno beige */
+.leaflet-container {
+    background-color: #e4d5b7 !important;
 }
 
-.leaflet-control-zoom {
-    filter: sepia(0.8);
+/* Efecto Sepia clásico aplicado solo a las imágenes del mapa */
+.leaflet-tile-pane {
+    filter: sepia(0.8) hue-rotate(-10deg) contrast(1.1) brightness(0.9);
 }
 
 /* Panel Flotante (Glassmorphism con tinte cálido) */

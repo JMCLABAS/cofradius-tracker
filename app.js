@@ -14,11 +14,10 @@ const map = L.map('map', { zoomControl: false }).setView([37.3858, -5.9931], 16)
 // Añadimos el control de zoom en otra esquina para que no pise el panel
 L.control.zoom({ position: 'topleft' }).addTo(map);
 
-// Capa base con más detalles (CartoDB Voyager) para que al aplicar sepia se vea como pergamino legible
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 20
+// Capa base de OpenStreetMap estándar (garantiza que las calles se vean perfectas en máximo zoom)
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19
 }).addTo(map);
 
 // 3. Variables de Estado
