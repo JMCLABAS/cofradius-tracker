@@ -21,11 +21,13 @@ body, html {
     top: 0;
     left: 0;
     z-index: 1;
+    background-color: #f8f9fa; /* Fondo gris muy claro */
 }
 
-/* Efecto Sepia Suave: Solo teñimos el mapa sin tocar el contraste ni la mezcla */
+/* Efecto Litografía (Escala de Grises): Elimina por completo los tonos amarillos.
+   Las calles se verán en grises/negros nítidos, y la estela morada resaltará perfecta. */
 .leaflet-tile-pane {
-    filter: sepia(0.7) hue-rotate(-5deg);
+    filter: grayscale(1) contrast(1.1);
 }
 
 /* Panel Flotante (Glassmorphism con tinte cálido) */
