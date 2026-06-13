@@ -14,8 +14,8 @@ const map = L.map('map', { zoomControl: false }).setView([37.3858, -5.9931], 16)
 // Añadimos el control de zoom en otra esquina para que no pise el panel
 L.control.zoom({ position: 'topleft' }).addTo(map);
 
-// Capa base limpia y elegante (CartoDB Positron)
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+// Capa base con más detalles (CartoDB Voyager) para que al aplicar sepia se vea como pergamino legible
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
     maxZoom: 20

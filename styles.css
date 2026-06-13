@@ -23,9 +23,9 @@ body, html {
     z-index: 1; /* El mapa queda al fondo */
 }
 
-/* Efecto Sepia/Pergamino a la capa del mapa */
+/* Efecto Sepia/Pergamino a la capa del mapa (Más marrón, oscuro y legible) */
 .leaflet-layer, .leaflet-control-zoom {
-    filter: sepia(0.65) hue-rotate(-15deg) contrast(1.1) saturate(1.3);
+    filter: sepia(0.9) hue-rotate(-10deg) brightness(0.75) contrast(1.2);
 }
 
 /* Panel Flotante (Glassmorphism con tinte cálido) */
