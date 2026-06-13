@@ -21,13 +21,6 @@ body, html {
     top: 0;
     left: 0;
     z-index: 1;
-    background-color: #f8f9fa; /* Fondo gris muy claro */
-}
-
-/* Efecto Litografía (Escala de Grises): Elimina por completo los tonos amarillos.
-   Las calles se verán en grises/negros nítidos, y la estela morada resaltará perfecta. */
-.leaflet-tile-pane {
-    filter: grayscale(1) contrast(1.1);
 }
 
 /* Panel Flotante (Glassmorphism con tinte cálido) */
