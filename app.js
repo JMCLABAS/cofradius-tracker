@@ -28,14 +28,12 @@ let positions = []; // Array de coordenadas [lat, lng]
 let lastUpdateTime = null; // Guardará la fecha UTC de la última posición
 let counterInterval = null;
 
-// Icono personalizado para la chincheta (Marcador destacado)
+// Icono personalizado para la chincheta (Marcador destacado con la imagen del usuario)
 const customIcon = L.icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-violet.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
+    iconUrl: 'chincheta.png', // Debe coincidir con el nombre de la imagen subida al repo
+    iconSize: [60, 48], // Ajustado según la proporción de los 3 nazarenos
+    iconAnchor: [30, 48], // El ancla en el medio abajo
+    popupAnchor: [0, -48]
 });
 
 // 4. Cargar Ruta Planificada (GeoJSON)
@@ -78,7 +76,7 @@ async function loadInitialData() {
             
             // Dibujar la estela (rastro)
             pathPolyline = L.polyline(positions, {
-                color: '#00bfff', // Azul claro neón
+                color: '#4a154b', // Morado Nazareno
                 weight: 5,
                 opacity: 0.8,
                 lineCap: 'round',
@@ -122,7 +120,7 @@ function subscribeToRealTime() {
                     pathPolyline.setLatLngs(positions);
                 } else {
                     pathPolyline = L.polyline(positions, {
-                        color: '#00bfff',
+                        color: '#4a154b', // Morado Nazareno
                         weight: 5,
                         opacity: 0.8,
                         lineCap: 'round',
