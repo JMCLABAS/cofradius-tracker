@@ -14,9 +14,9 @@ const map = L.map('map', { zoomControl: false }).setView([37.3858, -5.9931], 16)
 // Añadimos el control de zoom en otra esquina para que no pise el panel
 L.control.zoom({ position: 'topleft' }).addTo(map);
 
-// Capa base de OpenStreetMap estándar (garantiza que las calles se vean perfectas en máximo zoom)
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+// Capa base de ESRI World Street Map (Tonos cálidos y calles extremadamente visibles)
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
     maxZoom: 19
 }).addTo(map);
 

@@ -20,21 +20,12 @@ body, html {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 1; /* El mapa queda al fondo */
+    z-index: 1;
 }
 
-/* Evitar que Leaflet ponga el fondo gris claro por defecto, ponemos un degradado de papel envejecido */
-.leaflet-container {
-    background: radial-gradient(circle at center, #f4e8d1 0%, #c19a6b 100%) !important;
-}
-
-/* Efecto Pergamino Realista: 
-   El modo "multiply" hace que lo blanco del mapa se vuelva transparente y muestre el papel de fondo.
-   El contraste alto asegura que las calles no se pierdan. */
+/* Efecto Sepia Suave: Solo teñimos el mapa sin tocar el contraste ni la mezcla */
 .leaflet-tile-pane {
-    mix-blend-mode: multiply;
-    opacity: 0.85;
-    filter: sepia(0.5) grayscale(0.8) contrast(1.6);
+    filter: sepia(0.7) hue-rotate(-5deg);
 }
 
 /* Panel Flotante (Glassmorphism con tinte cálido) */
