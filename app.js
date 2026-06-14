@@ -30,7 +30,8 @@ let counterInterval = null;
 // -- Variables Planificador --
 let puntosRutaGeojson = [];
 let isPlannerMode = false;
-let plannerMarker = null;
+let plannerMarker = null; // Paso Cristo
+let plannerPalioMarker = null; // Paso Palio
 let fixedChurchMarker = null;
 let plannedRouteLayer = null;
 
@@ -58,11 +59,19 @@ const churchIcon = L.divIcon({
     iconAnchor: [20, 20]
 });
 
-// Icono del Paso (Imagen 3D que se mueve)
+// Icono del Paso de Misterio (Cristo)
 const pasoIcon = L.icon({
     iconUrl: 'paso.png', 
     iconSize: [70, 70], 
-    iconAnchor: [35, 65], // Anclado por la base
+    iconAnchor: [35, 65], 
+    popupAnchor: [0, -65]
+});
+
+// Icono del Paso de Palio (Virgen)
+const palioIcon = L.icon({
+    iconUrl: 'palio.png', 
+    iconSize: [70, 70], 
+    iconAnchor: [35, 65], 
     popupAnchor: [0, -65]
 });
 
@@ -306,6 +315,7 @@ function setupViews() {
         if (currentMarker) currentMarker.setOpacity(1);
         if (pathPolyline) pathPolyline.setStyle({opacity: 0.8});
         if (plannerMarker) plannerMarker.setOpacity(0);
+        if (plannerPalioMarker) plannerPalioMarker.setOpacity(0);
         if (fixedChurchMarker) fixedChurchMarker.setOpacity(0);
         
         // Ocultar ruta planificada
@@ -340,10 +350,16 @@ function setupViews() {
         if (fixedChurchMarker) fixedChurchMarker.setOpacity(1);
         
         if (!plannerMarker) {
-            // Marcador móvil usando la foto del paso
+            // Marcador del Cristo
             plannerMarker = L.marker(puntosRutaGeojson.length ? puntosRutaGeojson[0] : [0,0], { icon: pasoIcon, zIndexOffset: 1000 }).addTo(map);
         }
         plannerMarker.setOpacity(1);
+
+        if (!plannerPalioMarker) {
+            // Marcador del Palio
+            plannerPalioMarker = L.marker(puntosRutaGeojson.length ? puntosRutaGeojson[0] : [0,0], { icon: palioIcon, zIndexOffset: 999 }).addTo(map);
+        }
+        plannerPalioMarker.setOpacity(1);
         
         updatePlannerFromSlider();
         
@@ -358,7 +374,8 @@ function setupSlider() {
     const slider = document.getElementById('planner-slider');
     const horaSalida = itinerarioOficial[0].hora;
     const horaEntrada = itinerarioOficial[itinerarioOficial.length - 1].hora;
-    const totalMinutos = (horaEntrada - horaSalida) / 60000;
+    // Añadimos 30 minutos extra al límite del slider para que el Palio tenga tiempo de terminar su ruta
+    const totalMinutos = ((horaEntrada - horaSalida) / 60000) + 30;
     
     slider.max = totalMinutos;
     slider.value = 0;
@@ -379,11 +396,14 @@ function updatePlannerFromSlider() {
     display.textContent = `${hh}:${mm}`;
 
     if (isPlannerMode && puntosRutaGeojson.length > 0) {
-        const posicionTeorica = calcularPosicionTeorica(horaSimulada);
-        if (plannerMarker) {
-            plannerMarker.setLatLng(posicionTeorica);
-            // El usuario pidió expresamente no centrar automáticamente mientras se desliza
-        }
+        // El Cristo va en hora
+        const posicionCristo = calcularPosicionTeorica(horaSimulada);
+        if (plannerMarker) plannerMarker.setLatLng(posicionCristo);
+
+        // El Palio va 30 minutos (30 * 60000 ms) por detrás del simulador
+        const horaSimuladaPalio = new Date(horaSimulada.getTime() - (30 * 60000));
+        const posicionPalio = calcularPosicionTeorica(horaSimuladaPalio);
+        if (plannerPalioMarker) plannerPalioMarker.setLatLng(posicionPalio);
     }
 }
 
