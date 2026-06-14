@@ -23,9 +23,22 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // 3. Variables de Estado
 let currentMarker = null;
 let pathPolyline = null;
-let positions = []; // Array de coordenadas [lat, lng]
+let positions = []; // Array de coordenadas [lat, lng] de Supabase
 let lastUpdateTime = null; // Guardará la fecha UTC de la última posición
 let counterInterval = null;
+
+// -- Variables Planificador --
+let puntosRutaGeojson = [];
+let isPlannerMode = false;
+let plannerMarker = null;
+
+// Definimos el itinerario oficial (Mes 2 en JS Date = Marzo)
+const itinerarioOficial = [
+    { nombre: "Salida", hora: new Date(2026, 2, 29, 17, 0) },
+    { nombre: "Punto Medio", hora: new Date(2026, 2, 29, 19, 0) },
+    { nombre: "Zona Norte", hora: new Date(2026, 2, 29, 21, 0) },
+    { nombre: "Entrada", hora: new Date(2026, 2, 29, 23, 0) }
+];
 
 // Icono personalizado para la chincheta (Marcador destacado con la imagen del usuario)
 const customIcon = L.icon({
@@ -44,6 +57,13 @@ async function loadPlannedRoute() {
         }
         const geojsonData = await response.json();
         
+        // Guardar las coordenadas del GeoJSON para la matemática del Planificador
+        const feature = geojsonData.features.find(f => f.geometry.type === 'LineString');
+        if (feature) {
+            // GeoJSON almacena [lng, lat], Leaflet usa [lat, lng]
+            puntosRutaGeojson = feature.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+        }
+        
         L.geoJSON(geojsonData, {
             style: {
                 color: '#6c757d', // Gris oscuro elegante
@@ -54,7 +74,6 @@ async function loadPlannedRoute() {
         }).addTo(map);
         console.log('Ruta planificada cargada correctamente.');
     } catch (error) {
-        // Es un warning porque la app debe seguir funcionando aunque no haya ruta planificada
         console.warn('No se pudo cargar ruta.geojson o el archivo no existe:', error.message);
     }
 }
@@ -192,9 +211,147 @@ function updateCounterDisplay() {
     }
 }
 
-// 8. Inicialización de la Aplicación
-document.addEventListener('DOMContentLoaded', () => {
-    loadPlannedRoute();     // Carga de archivo local (GeoJSON)
+// 8. LÓGICA DEL PLANIFICADOR
+function calcularPosicionTeorica(horaActual) {
+    if (puntosRutaGeojson.length === 0) return [0,0]; // Fallback
+    
+    const horaSalida = itinerarioOficial[0].hora;
+    const horaEntrada = itinerarioOficial[itinerarioOficial.length - 1].hora;
+
+    if (horaActual <= horaSalida) return puntosRutaGeojson[0];
+    if (horaActual >= horaEntrada) return puntosRutaGeojson[puntosRutaGeojson.length - 1];
+
+    // 1. Buscamos en qué tramo del horario estamos
+    let tramoActual = 0;
+    for (let i = 0; i < itinerarioOficial.length - 1; i++) {
+        if (horaActual >= itinerarioOficial[i].hora && horaActual < itinerarioOficial[i + 1].hora) {
+            tramoActual = i;
+            break;
+        }
+    }
+
+    // 2. Calculamos el progreso dentro de ESE tramo (de 0.0 a 1.0)
+    const inicioTramo = itinerarioOficial[tramoActual].hora;
+    const finTramo = itinerarioOficial[tramoActual + 1].hora;
+    
+    const duracionTramo = (finTramo - inicioTramo);
+    const transcurrido = (horaActual - inicioTramo);
+    const progresoEnTramo = Math.max(0, Math.min(1, transcurrido / duracionTramo));
+
+    // 3. Puntos de ruta por tramo
+    const totalPuntos = puntosRutaGeojson.length;
+    const numTramos = itinerarioOficial.length - 1;
+    const puntosPorTramo = Math.floor(totalPuntos / numTramos);
+    
+    const indiceInicioRuta = tramoActual * puntosPorTramo;
+    let indiceFinRuta = (tramoActual + 1) * puntosPorTramo;
+    if (tramoActual === numTramos - 1) indiceFinRuta = totalPuntos - 1;
+
+    // 4. Interpolamos entre los puntos
+    const posicionEnRuta = indiceInicioRuta + (progresoEnTramo * (indiceFinRuta - indiceInicioRuta));
+    const idxA = Math.floor(posicionEnRuta);
+    const idxB = Math.min(idxA + 1, totalPuntos - 1);
+    const microProgreso = posicionEnRuta - idxA;
+
+    const pA = puntosRutaGeojson[idxA];
+    const pB = puntosRutaGeojson[idxB];
+
+    return [
+        pA[0] + (pB[0] - pA[0]) * microProgreso,
+        pA[1] + (pB[1] - pA[1]) * microProgreso
+    ];
+}
+
+function setupTabs() {
+    const tabLive = document.getElementById('tab-live');
+    const tabPlanner = document.getElementById('tab-planner');
+    const viewLive = document.getElementById('view-live');
+    const viewPlanner = document.getElementById('view-planner');
+    const liveBadge = document.getElementById('live-indicator-badge');
+
+    tabLive.addEventListener('click', () => {
+        isPlannerMode = false;
+        tabLive.classList.add('active');
+        tabPlanner.classList.remove('active');
+        viewLive.classList.add('active');
+        viewLive.classList.remove('hidden');
+        viewPlanner.classList.remove('active');
+        viewPlanner.classList.add('hidden');
+        liveBadge.classList.remove('hidden');
+        
+        if (currentMarker) currentMarker.setOpacity(1);
+        if (pathPolyline) pathPolyline.setStyle({opacity: 0.8});
+        if (plannerMarker) plannerMarker.setOpacity(0);
+        
+        if (currentMarker) map.panTo(currentMarker.getLatLng(), {animate: true});
+    });
+
+    tabPlanner.addEventListener('click', () => {
+        isPlannerMode = true;
+        tabPlanner.classList.add('active');
+        tabLive.classList.remove('active');
+        viewPlanner.classList.add('active');
+        viewPlanner.classList.remove('hidden');
+        viewLive.classList.remove('active');
+        viewLive.classList.add('hidden');
+        liveBadge.classList.add('hidden');
+        
+        if (currentMarker) currentMarker.setOpacity(0.3); 
+        if (pathPolyline) pathPolyline.setStyle({opacity: 0.3});
+        
+        if (!plannerMarker) {
+            // Creamos un segundo marcador para el planificador
+            plannerMarker = L.marker(puntosRutaGeojson.length ? puntosRutaGeojson[0] : [0,0], { icon: customIcon }).addTo(map);
+        }
+        plannerMarker.setOpacity(1);
+        
+        updatePlannerFromSlider();
+    });
+}
+
+function setupSlider() {
+    const slider = document.getElementById('planner-slider');
+    const horaSalida = itinerarioOficial[0].hora;
+    const horaEntrada = itinerarioOficial[itinerarioOficial.length - 1].hora;
+    const totalMinutos = (horaEntrada - horaSalida) / 60000;
+    
+    slider.max = totalMinutos;
+    slider.value = 0;
+    
+    slider.addEventListener('input', updatePlannerFromSlider);
+}
+
+function updatePlannerFromSlider() {
+    const slider = document.getElementById('planner-slider');
+    const display = document.getElementById('planner-time-display');
+    const horaSalida = itinerarioOficial[0].hora;
+    
+    const minutos = parseInt(slider.value, 10);
+    const horaSimulada = new Date(horaSalida.getTime() + (minutos * 60000));
+    
+    const hh = String(horaSimulada.getHours()).padStart(2, '0');
+    const mm = String(horaSimulada.getMinutes()).padStart(2, '0');
+    display.textContent = `${hh}:${mm}`;
+
+    if (isPlannerMode && puntosRutaGeojson.length > 0) {
+        const posicionTeorica = calcularPosicionTeorica(horaSimulada);
+        if (plannerMarker) {
+            plannerMarker.setLatLng(posicionTeorica);
+            map.panTo(posicionTeorica, { animate: false }); 
+        }
+    }
+}
+
+// 9. Inicialización de la Aplicación
+document.addEventListener('DOMContentLoaded', async () => {
+    setupTabs();
+    setupSlider();
+    
+    await loadPlannedRoute(); // Carga de archivo local (GeoJSON). Usamos await para que puntosRutaGeojson esté listo.
+    
+    // Si entramos directo en planificador, forzar update
+    if (isPlannerMode) updatePlannerFromSlider();
+    
     loadInitialData();      // SELECT a Supabase para cargar historial
     subscribeToRealTime();  // Abrir WebSocket para nuevos INSERTs
 });

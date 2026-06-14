@@ -25,16 +25,37 @@
 
     <!-- Panel Flotante Glassmorphism -->
     <div id="floating-panel" class="glass-panel">
+        
+        <!-- Pestañas de Navegación -->
+        <div class="tabs-container">
+            <button id="tab-live" class="tab-btn active">Seguimiento</button>
+            <button id="tab-planner" class="tab-btn">Planificador</button>
+        </div>
+
         <div class="header">
             <h1 class="title">CofradiUS</h1>
-            <div class="live-indicator">
+            <div id="live-indicator-badge" class="live-indicator">
                 <span class="dot"></span> EN VIVO
             </div>
         </div>
         <h2 class="subtitle">Paso único</h2>
-        <div class="status-container">
-            <p class="status-label">Última actualización:</p>
-            <p class="status"><span id="time-counter">Conectando...</span></p>
+        
+        <!-- Vista: Rastreo en Vivo -->
+        <div id="view-live" class="view-section active">
+            <div class="status-container">
+                <p class="status-label">Última actualización:</p>
+                <p class="status"><span id="time-counter">Conectando...</span></p>
+            </div>
+        </div>
+
+        <!-- Vista: Planificador -->
+        <div id="view-planner" class="view-section hidden">
+            <div class="status-container">
+                <p class="status-label">Hora prevista:</p>
+                <p class="status"><span id="planner-time-display">17:00</span></p>
+                <input type="range" id="planner-slider" min="0" max="360" value="0" class="time-slider">
+                <p class="slider-hint">Desliza para simular la posición</p>
+            </div>
         </div>
     </div>
 

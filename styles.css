@@ -109,13 +109,74 @@ body, html {
     color: #777;
     margin-bottom: 4px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    margin-bottom: 5px;
 }
 
 .status {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #4a154b; /* Morado Nazareno */
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #4B2E53; /* Morado muy oscuro */
+}
+
+/* ==================================
+   PESTAÑAS Y VISTAS (PLANIFICADOR)
+================================== */
+
+.tabs-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(138, 107, 49, 0.2);
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: #666;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn:hover {
+    color: #8A6B31;
+}
+
+.tab-btn.active {
+    color: #4B2E53;
+    border-bottom: 2px solid #8A6B31;
+}
+
+.view-section {
+    display: none;
+}
+
+.view-section.active {
+    display: block;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Slider de Tiempo */
+.time-slider {
+    width: 100%;
+    margin: 15px 0 5px 0;
+    accent-color: #4B2E53; /* Morado cofrade */
+    cursor: pointer;
+}
+
+.slider-hint {
+    font-size: 0.8rem;
+    color: #777;
+    margin-top: 5px;
 }
 
 /* Responsive: Mobile-first adaptaciones */
