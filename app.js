@@ -50,7 +50,8 @@ const hermandadesDB = {
         nombre: "CEIP Pepe González",
         archivoGeojson: "ruta_pepe_gonzalez.geojson", 
         pasos: [
-            { nombre: "Paso Único", iconoUrl: "paso.png", offsetMinutos: 0 }
+            { nombre: "Misterio", iconoUrl: "paso.png", offsetMinutos: 0 },
+            { nombre: "Palio", iconoUrl: "palio.png", offsetMinutos: 30 }
         ],
         itinerario: [
             { nombre: "Salida", hora: new Date(2026, 2, 29, 17, 30) },
