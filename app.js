@@ -83,6 +83,11 @@ async function loadPlannedRoute() {
         }
         
         plannedRouteLayer = L.geoJSON(geojsonData, {
+            filter: function(feature) {
+                // Filtramos los 'Point' para que Leaflet no dibuje la chincheta azul por defecto.
+                // Solo queremos que dibuje la línea ('LineString').
+                return feature.geometry.type !== 'Point';
+            },
             style: {
                 color: '#673ab7', // deepPurple como en Flutter
                 weight: 5,
