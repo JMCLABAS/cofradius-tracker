@@ -41,12 +41,20 @@ const itinerarioOficial = [
     { nombre: "Entrada", hora: new Date(2026, 2, 29, 23, 0) }
 ];
 
-// Icono personalizado para la chincheta (Marcador destacado con la imagen del usuario)
+// Icono personalizado para la chincheta real (Marcador destacado)
 const customIcon = L.icon({
-    iconUrl: 'chincheta.png', // Debe coincidir con el nombre de la imagen subida al repo
-    iconSize: [60, 48], // Ajustado según la proporción de los 3 nazarenos
-    iconAnchor: [30, 48], // El ancla en el medio abajo
+    iconUrl: 'chincheta.png', 
+    iconSize: [60, 48], 
+    iconAnchor: [30, 48], 
     popupAnchor: [0, -48]
+});
+
+// Icono de Iglesia para el planificador (como en Flutter)
+const churchIcon = L.divIcon({
+    html: '<div style="font-size: 40px; color: #5D4037; text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white; text-align: center; line-height: 40px;">⛪</div>',
+    className: 'custom-church-icon',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
 });
 
 // 4. Cargar Ruta Planificada (GeoJSON)
@@ -67,10 +75,9 @@ async function loadPlannedRoute() {
         
         plannedRouteLayer = L.geoJSON(geojsonData, {
             style: {
-                color: '#6c757d', // Gris oscuro elegante
-                weight: 4,
-                dashArray: '10, 10', // Línea punteada
-                opacity: 0.7
+                color: '#673ab7', // deepPurple como en Flutter
+                weight: 5,
+                opacity: 0.6
             }
         });
         
@@ -267,22 +274,20 @@ function calcularPosicionTeorica(horaActual) {
     ];
 }
 
-function setupTabs() {
-    const tabLive = document.getElementById('tab-live');
-    const tabPlanner = document.getElementById('tab-planner');
-    const viewLive = document.getElementById('view-live');
-    const viewPlanner = document.getElementById('view-planner');
-    const liveBadge = document.getElementById('live-indicator-badge');
+function setupViews() {
+    const btnGoPlanner = document.getElementById('btn-go-planner');
+    const btnGoLive = document.getElementById('btn-go-live');
+    const liveContainer = document.getElementById('live-view-container');
+    const plannerContainer = document.getElementById('planner-view-container');
 
-    tabLive.addEventListener('click', () => {
+    // MODO EN VIVO
+    btnGoLive.addEventListener('click', () => {
         isPlannerMode = false;
-        tabLive.classList.add('active');
-        tabPlanner.classList.remove('active');
-        viewLive.classList.add('active');
-        viewLive.classList.remove('hidden');
-        viewPlanner.classList.remove('active');
-        viewPlanner.classList.add('hidden');
-        liveBadge.classList.remove('hidden');
+        liveContainer.classList.remove('hidden');
+        plannerContainer.classList.add('hidden');
+        
+        // Restaurar filtro blanco y negro para modo en vivo
+        document.querySelector('.leaflet-tile-pane').style.filter = '';
         
         if (currentMarker) currentMarker.setOpacity(1);
         if (pathPolyline) pathPolyline.setStyle({opacity: 0.8});
@@ -296,15 +301,14 @@ function setupTabs() {
         if (currentMarker) map.panTo(currentMarker.getLatLng(), {animate: true});
     });
 
-    tabPlanner.addEventListener('click', () => {
+    // MODO PLANIFICADOR
+    btnGoPlanner.addEventListener('click', () => {
         isPlannerMode = true;
-        tabPlanner.classList.add('active');
-        tabLive.classList.remove('active');
-        viewPlanner.classList.add('active');
-        viewPlanner.classList.remove('hidden');
-        viewLive.classList.remove('active');
-        viewLive.classList.add('hidden');
-        liveBadge.classList.add('hidden');
+        plannerContainer.classList.remove('hidden');
+        liveContainer.classList.add('hidden');
+        
+        // Quitar filtros para que el mapa se vea a todo color en modo planificador
+        document.querySelector('.leaflet-tile-pane').style.filter = 'none';
         
         if (currentMarker) currentMarker.setOpacity(0.0); // Ocultar por completo
         if (pathPolyline) pathPolyline.setStyle({opacity: 0.0}); // Ocultar por completo
@@ -315,8 +319,8 @@ function setupTabs() {
         }
         
         if (!plannerMarker) {
-            // Creamos un segundo marcador para el planificador
-            plannerMarker = L.marker(puntosRutaGeojson.length ? puntosRutaGeojson[0] : [0,0], { icon: customIcon }).addTo(map);
+            // Creamos un segundo marcador (Iglesia) para el planificador
+            plannerMarker = L.marker(puntosRutaGeojson.length ? puntosRutaGeojson[0] : [0,0], { icon: churchIcon }).addTo(map);
         }
         plannerMarker.setOpacity(1);
         
@@ -359,7 +363,7 @@ function updatePlannerFromSlider() {
 
 // 9. Inicialización de la Aplicación
 document.addEventListener('DOMContentLoaded', async () => {
-    setupTabs();
+    setupViews();
     setupSlider();
     
     await loadPlannedRoute(); // Carga de archivo local (GeoJSON). Usamos await para que puntosRutaGeojson esté listo.

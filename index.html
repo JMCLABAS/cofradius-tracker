@@ -23,38 +23,39 @@
     <!-- Contenedor del Mapa -->
     <div id="map"></div>
 
-    <!-- Panel Flotante Glassmorphism -->
-    <div id="floating-panel" class="glass-panel">
-        
-        <!-- Pestañas de Navegación -->
-        <div class="tabs-container">
-            <button id="tab-live" class="tab-btn active">Seguimiento</button>
-            <button id="tab-planner" class="tab-btn">Planificador</button>
-        </div>
-
-        <div class="header">
-            <h1 class="title">CofradiUS</h1>
-            <div id="live-indicator-badge" class="live-indicator">
-                <span class="dot"></span> EN VIVO
+    <!-- VISTA: EN VIVO -->
+    <div id="live-view-container">
+        <!-- Panel Flotante Glassmorphism -->
+        <div id="floating-panel" class="glass-panel">
+            <button id="btn-go-planner" class="tab-btn" style="width:100%; border:1px solid #8A6B31; border-radius:8px; margin-bottom:15px; background: rgba(138, 107, 49, 0.1);">Abrir Planificador</button>
+            <div class="header">
+                <h1 class="title">CofradiUS</h1>
+                <div id="live-indicator-badge" class="live-indicator">
+                    <span class="dot"></span> EN VIVO
+                </div>
             </div>
-        </div>
-        <h2 class="subtitle">Paso único</h2>
-        
-        <!-- Vista: Rastreo en Vivo -->
-        <div id="view-live" class="view-section active">
+            <h2 class="subtitle">Paso único</h2>
             <div class="status-container">
                 <p class="status-label">Última actualización:</p>
                 <p class="status"><span id="time-counter">Conectando...</span></p>
             </div>
         </div>
+    </div>
 
-        <!-- Vista: Planificador -->
-        <div id="view-planner" class="view-section hidden">
-            <div class="status-container">
-                <p class="status-label">Hora prevista:</p>
-                <p class="status"><span id="planner-time-display">17:00</span></p>
+    <!-- VISTA: PLANIFICADOR (Oculta por defecto) -->
+    <div id="planner-view-container" class="hidden">
+        <!-- AppBar Superior (Estilo Flutter) -->
+        <div class="planner-appbar">
+            <button id="btn-go-live" class="back-btn">⬅ Volver</button>
+            <h1 class="planner-title">Planificador CofradiUS</h1>
+        </div>
+
+        <!-- Tarjeta Inferior (Estilo Flutter) -->
+        <div class="planner-bottom-card">
+            <div class="status-container" style="text-align: center;">
+                <h3 class="planner-time-title">Hora de consulta: <span id="planner-time-display">17:00</span></h3>
                 <input type="range" id="planner-slider" min="0" max="360" value="0" class="time-slider">
-                <p class="slider-hint">Desliza para simular la posición</p>
+                <p class="slider-hint">Desliza para ver la posición prevista</p>
             </div>
         </div>
     </div>

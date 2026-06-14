@@ -119,63 +119,105 @@ body, html {
 }
 
 /* ==================================
-   PESTAÑAS Y VISTAS (PLANIFICADOR)
+   VISTAS (PLANIFICADOR Y EN VIVO)
 ================================== */
-
-.tabs-container {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    border-bottom: 1px solid rgba(138, 107, 49, 0.2);
-    padding-bottom: 10px;
-}
-
-.tab-btn {
-    background: none;
-    border: none;
-    color: #666;
-    font-family: 'Cinzel', serif;
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 5px 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border-bottom: 2px solid transparent;
-}
-
-.tab-btn:hover {
-    color: #8A6B31;
-}
-
-.tab-btn.active {
-    color: #4B2E53;
-    border-bottom: 2px solid #8A6B31;
-}
-
-.view-section {
-    display: none;
-}
-
-.view-section.active {
-    display: block;
-}
 
 .hidden {
     display: none !important;
 }
 
+.tab-btn {
+    background: none;
+    border: none;
+    color: #4B2E53;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    color: #8A6B31;
+    background: rgba(138, 107, 49, 0.2) !important;
+}
+
+/* AppBar Planificador */
+.planner-appbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #673ab7; /* Morado Flutter */
+    color: white;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.planner-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.back-btn {
+    position: absolute;
+    left: 15px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+}
+
+.back-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+/* Tarjeta Inferior Planificador */
+.planner-bottom-card {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    background: #fdfdfd;
+    border-radius: 12px;
+    padding: 20px;
+    z-index: 1000;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+.planner-time-title {
+    font-family: 'Outfit', sans-serif;
+    color: black;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
 /* Slider de Tiempo */
 .time-slider {
     width: 100%;
-    margin: 15px 0 5px 0;
-    accent-color: #4B2E53; /* Morado cofrade */
+    margin: 15px 0 10px 0;
+    accent-color: #673ab7; /* Morado Flutter */
     cursor: pointer;
 }
 
 .slider-hint {
     font-size: 0.8rem;
-    color: #777;
+    color: #999;
     margin-top: 5px;
 }
 
