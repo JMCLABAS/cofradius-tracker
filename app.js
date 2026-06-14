@@ -49,6 +49,18 @@ const hermandadesDB = {
             { nombre: "Zona Norte", hora: new Date(2026, 2, 29, 21, 0) },
             { nombre: "Entrada", hora: new Date(2026, 2, 29, 23, 0) }
         ]
+    },
+    "prueba": {
+        nombre: "Hermandad de Prueba (Mañana)",
+        archivoGeojson: "ruta_planificador.geojson", // Reusamos la ruta de ejemplo
+        pasos: [
+            { nombre: "Unico Paso", iconoUrl: "paso.png", offsetMinutos: 0 }
+        ],
+        itinerario: [
+            { nombre: "Salida", hora: new Date(2026, 2, 30, 10, 0) }, // Al día siguiente por la mañana
+            { nombre: "Mitad", hora: new Date(2026, 2, 30, 12, 0) },
+            { "nombre": "Entrada", hora: new Date(2026, 2, 30, 14, 0) }
+        ]
     }
 };
 
