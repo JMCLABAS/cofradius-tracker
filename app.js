@@ -31,6 +31,7 @@ let counterInterval = null;
 let puntosRutaGeojson = [];
 let isPlannerMode = false;
 let plannerMarker = null;
+let plannedRouteLayer = null;
 
 // Definimos el itinerario oficial (Mes 2 en JS Date = Marzo)
 const itinerarioOficial = [
@@ -51,7 +52,7 @@ const customIcon = L.icon({
 // 4. Cargar Ruta Planificada (GeoJSON)
 async function loadPlannedRoute() {
     try {
-        const response = await fetch('ruta.geojson');
+        const response = await fetch('ruta_planificador.geojson');
         if (!response.ok) {
             throw new Error(`Error HTTP: ${response.status}`);
         }
@@ -64,17 +65,21 @@ async function loadPlannedRoute() {
             puntosRutaGeojson = feature.geometry.coordinates.map(coord => [coord[1], coord[0]]);
         }
         
-        L.geoJSON(geojsonData, {
+        plannedRouteLayer = L.geoJSON(geojsonData, {
             style: {
                 color: '#6c757d', // Gris oscuro elegante
                 weight: 4,
                 dashArray: '10, 10', // Línea punteada
                 opacity: 0.7
             }
-        }).addTo(map);
+        });
+        
+        // Por defecto arranca en modo en vivo, así que NO lo añadimos al mapa todavía.
+        // Se añadirá cuando pulsemos la pestaña de Planificador.
+        
         console.log('Ruta planificada cargada correctamente.');
     } catch (error) {
-        console.warn('No se pudo cargar ruta.geojson o el archivo no existe:', error.message);
+        console.warn('No se pudo cargar ruta_planificador.geojson:', error.message);
     }
 }
 
@@ -283,6 +288,11 @@ function setupTabs() {
         if (pathPolyline) pathPolyline.setStyle({opacity: 0.8});
         if (plannerMarker) plannerMarker.setOpacity(0);
         
+        // Ocultar ruta planificada
+        if (plannedRouteLayer && map.hasLayer(plannedRouteLayer)) {
+            map.removeLayer(plannedRouteLayer);
+        }
+        
         if (currentMarker) map.panTo(currentMarker.getLatLng(), {animate: true});
     });
 
@@ -296,8 +306,13 @@ function setupTabs() {
         viewLive.classList.add('hidden');
         liveBadge.classList.add('hidden');
         
-        if (currentMarker) currentMarker.setOpacity(0.3); 
-        if (pathPolyline) pathPolyline.setStyle({opacity: 0.3});
+        if (currentMarker) currentMarker.setOpacity(0.0); // Ocultar por completo
+        if (pathPolyline) pathPolyline.setStyle({opacity: 0.0}); // Ocultar por completo
+        
+        // Mostrar ruta planificada
+        if (plannedRouteLayer && !map.hasLayer(plannedRouteLayer)) {
+            plannedRouteLayer.addTo(map);
+        }
         
         if (!plannerMarker) {
             // Creamos un segundo marcador para el planificador
