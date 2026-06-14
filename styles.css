@@ -207,30 +207,6 @@ body, html {
     font-weight: 600;
 }
 
-/* Selector de Hermandades */
-.hermandad-selector-container {
-    margin-bottom: 15px;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 15px;
-}
-
-.hermandad-selector {
-    width: 100%;
-    padding: 10px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-    color: #333;
-    outline: none;
-    cursor: pointer;
-}
-
-.hermandad-selector:focus {
-    border-color: #673ab7;
-}
-
 /* Slider de Tiempo */
 .time-slider {
     width: 100%;

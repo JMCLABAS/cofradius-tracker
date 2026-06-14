@@ -28,16 +28,12 @@ let lastUpdateTime = null; // Guardará la fecha UTC de la última posición
 let counterInterval = null;
 
 // -- Variables Planificador --
-let puntosRutaGeojson = [];
 let isPlannerMode = false;
-let activePasoMarkers = []; // Array dinámico para soportar N pasos
-let fixedChurchMarker = null;
-let plannedRouteLayer = null;
 
 // Base de datos de Hermandades
 const hermandadesDB = {
-    "actual": {
-        nombre: "Mi Hermandad (Actual)",
+    "original": {
+        nombre: "Mi Hermandad",
         archivoGeojson: "ruta_planificador.geojson",
         pasos: [
             { nombre: "Cristo", iconoUrl: "paso.png", offsetMinutos: 0 },
@@ -50,22 +46,18 @@ const hermandadesDB = {
             { nombre: "Entrada", hora: new Date(2026, 2, 29, 23, 0) }
         ]
     },
-    "prueba": {
-        nombre: "Hermandad de Prueba (Misma hora)",
-        archivoGeojson: "ruta_prueba.geojson", // Ruta en Plaza de España
+    "pepe_gonzalez": {
+        nombre: "CEIP Pepe González",
+        archivoGeojson: "ruta_pepe_gonzalez.geojson", 
         pasos: [
-            { nombre: "Unico Paso", iconoUrl: "paso.png", offsetMinutos: 0 }
+            { nombre: "Paso Único", iconoUrl: "paso.png", offsetMinutos: 0 }
         ],
         itinerario: [
-            { nombre: "Salida", hora: new Date(2026, 2, 29, 17, 0) },
-            { nombre: "Punto Medio", hora: new Date(2026, 2, 29, 19, 0) },
-            { nombre: "Zona Norte", hora: new Date(2026, 2, 29, 21, 0) },
-            { nombre: "Entrada", hora: new Date(2026, 2, 29, 23, 0) }
+            { nombre: "Salida", hora: new Date(2026, 2, 29, 17, 30) },
+            { nombre: "Entrada", hora: new Date(2026, 2, 30, 0, 0) } // 00:00 del día siguiente
         ]
     }
 };
-
-let hermandadActivaId = "actual";
 
 // Icono personalizado para la chincheta real (Marcador destacado)
 const customIcon = L.icon({
@@ -93,48 +85,41 @@ function createPasoIcon(url) {
     });
 }
 
-// 4. Cargar Ruta Planificada (GeoJSON) Dinámica
-async function loadPlannedRoute(geojsonFilename) {
-    try {
-        const response = await fetch(geojsonFilename);
-        if (!response.ok) {
-            throw new Error(`Error HTTP: ${response.status}`);
-        }
-        const geojsonData = await response.json();
-        
-        // Limpiar capa anterior si existe
-        if (plannedRouteLayer && map.hasLayer(plannedRouteLayer)) {
-            map.removeLayer(plannedRouteLayer);
-        }
-        
-        // Guardar las coordenadas del GeoJSON
-        const feature = geojsonData.features.find(f => f.geometry.type === 'LineString');
-        if (feature) {
-            puntosRutaGeojson = feature.geometry.coordinates.map(coord => [coord[1], coord[0]]);
-        }
-        
-        plannedRouteLayer = L.geoJSON(geojsonData, {
-            filter: function(feature) {
-                return feature.geometry.type !== 'Point';
-            },
-            style: {
-                color: '#673ab7',
-                weight: 5,
-                opacity: 0.6
+// 4. Cargar Rutas Planificadas (GeoJSON) Dinámicas
+async function loadAllPlannedRoutes() {
+    const fetchPromises = [];
+    for (const id in hermandadesDB) {
+        const h = hermandadesDB[id];
+        const p = fetch(h.archivoGeojson).then(res => {
+            if (!res.ok) throw new Error(`Error HTTP: ${res.status}`);
+            return res.json();
+        }).then(geojsonData => {
+            const feature = geojsonData.features.find(f => f.geometry.type === 'LineString');
+            if (feature) {
+                h.puntosRutaGeojson = feature.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+            } else {
+                h.puntosRutaGeojson = [];
             }
+            h.plannedRouteLayer = L.geoJSON(geojsonData, {
+                filter: function(feature) {
+                    return feature.geometry.type !== 'Point';
+                },
+                style: {
+                    color: '#673ab7',
+                    weight: 5,
+                    opacity: 0.6
+                }
+            });
+            h.activePasoMarkers = [];
+            h.fixedChurchMarker = null;
+            console.log(`Ruta ${h.archivoGeojson} cargada correctamente.`);
+        }).catch(error => {
+            console.warn(`No se pudo cargar ${h.archivoGeojson}:`, error.message);
+            h.puntosRutaGeojson = [];
         });
-        
-        // Solo lo mostramos si estamos en modo planificador
-        if (isPlannerMode) {
-            plannedRouteLayer.addTo(map);
-            map.fitBounds(plannedRouteLayer.getBounds(), { padding: [50, 50] });
-        }
-        
-        console.log(`Ruta ${geojsonFilename} cargada correctamente.`);
-    } catch (error) {
-        console.warn(`No se pudo cargar ${geojsonFilename}:`, error.message);
-        puntosRutaGeojson = [];
+        fetchPromises.push(p);
     }
+    await Promise.all(fetchPromises);
 }
 
 // 5. Cargar Datos Históricos (Estela inicial)
@@ -271,14 +256,14 @@ function updateCounterDisplay() {
 }
 
 // 8. LÓGICA DEL PLANIFICADOR
-function calcularPosicionTeorica(horaActual, itinerario) {
-    if (puntosRutaGeojson.length === 0 || itinerario.length === 0) return [0,0];
+function calcularPosicionTeorica(horaActual, itinerario, puntosRuta) {
+    if (!puntosRuta || puntosRuta.length === 0 || itinerario.length === 0) return [0,0];
     
     const horaSalida = itinerario[0].hora;
     const horaEntrada = itinerario[itinerario.length - 1].hora;
 
-    if (horaActual <= horaSalida) return puntosRutaGeojson[0];
-    if (horaActual >= horaEntrada) return puntosRutaGeojson[puntosRutaGeojson.length - 1];
+    if (horaActual <= horaSalida) return puntosRuta[0];
+    if (horaActual >= horaEntrada) return puntosRuta[puntosRuta.length - 1];
 
     let tramoActual = 0;
     for (let i = 0; i < itinerario.length - 1; i++) {
@@ -294,7 +279,7 @@ function calcularPosicionTeorica(horaActual, itinerario) {
     const transcurrido = (horaActual - inicioTramo);
     const progresoEnTramo = Math.max(0, Math.min(1, transcurrido / duracionTramo));
 
-    const totalPuntos = puntosRutaGeojson.length;
+    const totalPuntos = puntosRuta.length;
     const numTramos = itinerario.length - 1;
     const puntosPorTramo = Math.floor(totalPuntos / numTramos);
     
@@ -307,8 +292,8 @@ function calcularPosicionTeorica(horaActual, itinerario) {
     const idxB = Math.min(idxA + 1, totalPuntos - 1);
     const microProgreso = posicionEnRuta - idxA;
 
-    const pA = puntosRutaGeojson[idxA];
-    const pB = puntosRutaGeojson[idxB];
+    const pA = puntosRuta[idxA];
+    const pB = puntosRuta[idxB];
 
     return [
         pA[0] + (pB[0] - pA[0]) * microProgreso,
@@ -328,16 +313,19 @@ function setupViews() {
         liveContainer.classList.remove('hidden');
         plannerContainer.classList.add('hidden');
         
-        // Restaurar filtro blanco y negro para modo en vivo
         document.querySelector('.leaflet-tile-pane').style.filter = '';
         
         if (currentMarker) currentMarker.setOpacity(1);
         if (pathPolyline) pathPolyline.setStyle({opacity: 0.8});
-        activePasoMarkers.forEach(m => m.setOpacity(0));
-        if (fixedChurchMarker) fixedChurchMarker.setOpacity(0);
         
-        if (plannedRouteLayer && map.hasLayer(plannedRouteLayer)) {
-            map.removeLayer(plannedRouteLayer);
+        for (const id in hermandadesDB) {
+            const h = hermandadesDB[id];
+            if (h.activePasoMarkers) h.activePasoMarkers.forEach(m => m.marker.setOpacity(0));
+            if (h.fixedChurchMarker) h.fixedChurchMarker.setOpacity(0);
+            
+            if (h.plannedRouteLayer && map.hasLayer(h.plannedRouteLayer)) {
+                map.removeLayer(h.plannedRouteLayer);
+            }
         }
         
         if (currentMarker) map.panTo(currentMarker.getLatLng(), {animate: true});
@@ -354,93 +342,88 @@ function setupViews() {
         if (currentMarker) currentMarker.setOpacity(0.0);
         if (pathPolyline) pathPolyline.setStyle({opacity: 0.0});
         
-        if (plannedRouteLayer && !map.hasLayer(plannedRouteLayer)) {
-            plannedRouteLayer.addTo(map);
+        const bounds = L.latLngBounds();
+        for (const id in hermandadesDB) {
+            const h = hermandadesDB[id];
+            if (h.plannedRouteLayer && !map.hasLayer(h.plannedRouteLayer)) {
+                h.plannedRouteLayer.addTo(map);
+            }
+            if (h.puntosRutaGeojson && h.puntosRutaGeojson.length > 0) {
+                h.puntosRutaGeojson.forEach(pt => bounds.extend(pt));
+            }
         }
         
         setupPlannerMarkers();
-        
         updatePlannerFromSlider();
         
-        if (plannedRouteLayer && map.hasLayer(plannedRouteLayer)) {
-            map.fitBounds(plannedRouteLayer.getBounds(), { padding: [50, 50] });
+        if (bounds.isValid()) {
+            map.fitBounds(bounds, { padding: [50, 50] });
         }
     });
 }
 
 function setupPlannerMarkers() {
-    const hermandad = hermandadesDB[hermandadActivaId];
-    
-    // Iglesia Fija
-    if (!fixedChurchMarker && puntosRutaGeojson.length > 0) {
-        fixedChurchMarker = L.marker(puntosRutaGeojson[0], { icon: churchIcon }).addTo(map);
-    }
-    if (fixedChurchMarker) fixedChurchMarker.setOpacity(1);
-    
-    // Limpiar marcadores antiguos
-    activePasoMarkers.forEach(m => map.removeLayer(m));
-    activePasoMarkers = [];
-    
-    // Generar marcadores para los pasos de la hermandad activa
-    if (puntosRutaGeojson.length > 0) {
-        hermandad.pasos.forEach((paso, index) => {
-            const marker = L.marker(puntosRutaGeojson[0], { 
-                icon: createPasoIcon(paso.iconoUrl), 
-                zIndexOffset: 1000 - index // El primero queda por encima
-            }).addTo(map);
-            activePasoMarkers.push({
-                marker: marker,
-                offset: paso.offsetMinutos
-            });
-        });
-    }
-}
-
-function setupHermandadSelector() {
-    const selector = document.getElementById('hermandad-selector');
-    
-    // Rellenar opciones
     for (const id in hermandadesDB) {
-        const option = document.createElement('option');
-        option.value = id;
-        option.textContent = hermandadesDB[id].nombre;
-        selector.appendChild(option);
-    }
-    
-    // Evento de cambio
-    selector.addEventListener('change', async (e) => {
-        hermandadActivaId = e.target.value;
-        const hermandad = hermandadesDB[hermandadActivaId];
+        const h = hermandadesDB[id];
         
-        // Cargar nueva ruta y resetear
-        await loadPlannedRoute(hermandad.archivoGeojson);
-        setupPlannerMarkers();
-        setupSlider(); 
-        if (isPlannerMode) updatePlannerFromSlider();
-    });
+        // Iglesia Fija
+        if (!h.fixedChurchMarker && h.puntosRutaGeojson && h.puntosRutaGeojson.length > 0) {
+            h.fixedChurchMarker = L.marker(h.puntosRutaGeojson[0], { icon: churchIcon }).addTo(map);
+        }
+        if (h.fixedChurchMarker) h.fixedChurchMarker.setOpacity(1);
+        
+        // Limpiar marcadores antiguos
+        if (h.activePasoMarkers) {
+            h.activePasoMarkers.forEach(m => map.removeLayer(m.marker));
+        }
+        h.activePasoMarkers = [];
+        
+        // Generar marcadores para los pasos
+        if (h.puntosRutaGeojson && h.puntosRutaGeojson.length > 0) {
+            h.pasos.forEach((paso, index) => {
+                const marker = L.marker(h.puntosRutaGeojson[0], { 
+                    icon: createPasoIcon(paso.iconoUrl), 
+                    zIndexOffset: 1000 - index 
+                }).addTo(map);
+                h.activePasoMarkers.push({
+                    marker: marker,
+                    offset: paso.offsetMinutos
+                });
+            });
+        }
+    }
 }
 
 function setupSlider() {
     const slider = document.getElementById('planner-slider');
-    const hermandad = hermandadesDB[hermandadActivaId];
     
-    if (hermandad.itinerario.length === 0) return;
+    let minDate = new Date('2999-01-01').getTime();
+    let maxDate = new Date('1970-01-01').getTime();
     
-    const horaSalida = hermandad.itinerario[0].hora;
-    const horaEntrada = hermandad.itinerario[hermandad.itinerario.length - 1].hora;
+    for (const id in hermandadesDB) {
+        const h = hermandadesDB[id];
+        if (h.itinerario.length === 0) continue;
+        
+        const hSalida = h.itinerario[0].hora.getTime();
+        const hEntrada = h.itinerario[h.itinerario.length - 1].hora.getTime();
+        
+        let maxOffsetMs = 0;
+        h.pasos.forEach(p => {
+            if ((p.offsetMinutos * 60000) > maxOffsetMs) maxOffsetMs = (p.offsetMinutos * 60000);
+        });
+        
+        if (hSalida < minDate) minDate = hSalida;
+        if ((hEntrada + maxOffsetMs) > maxDate) maxDate = hEntrada + maxOffsetMs;
+    }
     
-    // Encontrar el offset máximo de los pasos para darles tiempo a terminar
-    let maxOffset = 0;
-    hermandad.pasos.forEach(p => {
-        if (p.offsetMinutos > maxOffset) maxOffset = p.offsetMinutos;
-    });
+    if (minDate > maxDate) return;
+    window.globalSliderMinDate = minDate;
     
-    const totalMinutos = ((horaEntrada - horaSalida) / 60000) + maxOffset;
+    const totalMinutos = (maxDate - minDate) / 60000;
     
     slider.max = totalMinutos;
     slider.value = 0;
     
-    // Solo registrar el evento una vez
     if (!slider.hasAttribute('data-initialized')) {
         slider.addEventListener('input', updatePlannerFromSlider);
         slider.setAttribute('data-initialized', 'true');
@@ -450,37 +433,39 @@ function setupSlider() {
 function updatePlannerFromSlider() {
     const slider = document.getElementById('planner-slider');
     const display = document.getElementById('planner-time-display');
-    const hermandad = hermandadesDB[hermandadActivaId];
     
-    if (hermandad.itinerario.length === 0) return;
+    if (!window.globalSliderMinDate) return;
     
-    const horaSalida = hermandad.itinerario[0].hora;
     const minutos = parseInt(slider.value, 10);
-    const horaSimulada = new Date(horaSalida.getTime() + (minutos * 60000));
+    const horaSimulada = new Date(window.globalSliderMinDate + (minutos * 60000));
     
     const hh = String(horaSimulada.getHours()).padStart(2, '0');
     const mm = String(horaSimulada.getMinutes()).padStart(2, '0');
     display.textContent = `${hh}:${mm}`;
 
-    if (isPlannerMode && puntosRutaGeojson.length > 0) {
-        activePasoMarkers.forEach(pasoData => {
-            const horaSimuladaPaso = new Date(horaSimulada.getTime() - (pasoData.offset * 60000));
-            const posicion = calcularPosicionTeorica(horaSimuladaPaso, hermandad.itinerario);
-            pasoData.marker.setLatLng(posicion);
-        });
+    if (isPlannerMode) {
+        for (const id in hermandadesDB) {
+            const h = hermandadesDB[id];
+            if (h.puntosRutaGeojson && h.puntosRutaGeojson.length > 0 && h.itinerario.length > 0) {
+                if (h.activePasoMarkers) {
+                    h.activePasoMarkers.forEach(pasoData => {
+                        const horaSimuladaPaso = new Date(horaSimulada.getTime() - (pasoData.offset * 60000));
+                        const posicion = calcularPosicionTeorica(horaSimuladaPaso, h.itinerario, h.puntosRutaGeojson);
+                        pasoData.marker.setLatLng(posicion);
+                    });
+                }
+            }
+        }
     }
 }
 
 // 9. Inicialización de la Aplicación
 document.addEventListener('DOMContentLoaded', async () => {
     setupViews();
-    setupHermandadSelector();
     setupSlider();
     
-    const hermandad = hermandadesDB[hermandadActivaId];
-    await loadPlannedRoute(hermandad.archivoGeojson);
+    await loadAllPlannedRoutes();
     
-    // Si entramos directo en planificador, forzar update
     if (isPlannerMode) updatePlannerFromSlider();
     
     loadInitialData();      // SELECT a Supabase para cargar historial
