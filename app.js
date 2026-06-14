@@ -31,6 +31,7 @@ let counterInterval = null;
 let puntosRutaGeojson = [];
 let isPlannerMode = false;
 let plannerMarker = null;
+let fixedChurchMarker = null;
 let plannedRouteLayer = null;
 
 // Definimos el itinerario oficial (Mes 2 en JS Date = Marzo)
@@ -49,12 +50,20 @@ const customIcon = L.icon({
     popupAnchor: [0, -48]
 });
 
-// Icono de Iglesia para el planificador (como en Flutter)
+// Icono de Iglesia para el planificador (Iglesia Fija)
 const churchIcon = L.divIcon({
     html: '<div style="font-size: 40px; color: #5D4037; text-shadow: 2px 2px 0px white, -2px -2px 0px white, 2px -2px 0px white, -2px 2px 0px white; text-align: center; line-height: 40px;">⛪</div>',
     className: 'custom-church-icon',
     iconSize: [40, 40],
     iconAnchor: [20, 20]
+});
+
+// Icono del Paso (Imagen 3D que se mueve)
+const pasoIcon = L.icon({
+    iconUrl: 'paso.png', 
+    iconSize: [70, 70], 
+    iconAnchor: [35, 65], // Anclado por la base
+    popupAnchor: [0, -65]
 });
 
 // 4. Cargar Ruta Planificada (GeoJSON)
@@ -292,6 +301,7 @@ function setupViews() {
         if (currentMarker) currentMarker.setOpacity(1);
         if (pathPolyline) pathPolyline.setStyle({opacity: 0.8});
         if (plannerMarker) plannerMarker.setOpacity(0);
+        if (fixedChurchMarker) fixedChurchMarker.setOpacity(0);
         
         // Ocultar ruta planificada
         if (plannedRouteLayer && map.hasLayer(plannedRouteLayer)) {
@@ -318,13 +328,24 @@ function setupViews() {
             plannedRouteLayer.addTo(map);
         }
         
+        if (!fixedChurchMarker && puntosRutaGeojson.length > 0) {
+            // Iglesia fija en el punto de salida
+            fixedChurchMarker = L.marker(puntosRutaGeojson[0], { icon: churchIcon }).addTo(map);
+        }
+        if (fixedChurchMarker) fixedChurchMarker.setOpacity(1);
+        
         if (!plannerMarker) {
-            // Creamos un segundo marcador (Iglesia) para el planificador
-            plannerMarker = L.marker(puntosRutaGeojson.length ? puntosRutaGeojson[0] : [0,0], { icon: churchIcon }).addTo(map);
+            // Marcador móvil usando la foto del paso
+            plannerMarker = L.marker(puntosRutaGeojson.length ? puntosRutaGeojson[0] : [0,0], { icon: pasoIcon, zIndexOffset: 1000 }).addTo(map);
         }
         plannerMarker.setOpacity(1);
         
         updatePlannerFromSlider();
+        
+        // Centrar el mapa en toda la ruta planificada para que se vea el recorrido completo
+        if (plannedRouteLayer && map.hasLayer(plannedRouteLayer)) {
+            map.fitBounds(plannedRouteLayer.getBounds(), { padding: [50, 50] });
+        }
     });
 }
 
@@ -356,7 +377,7 @@ function updatePlannerFromSlider() {
         const posicionTeorica = calcularPosicionTeorica(horaSimulada);
         if (plannerMarker) {
             plannerMarker.setLatLng(posicionTeorica);
-            map.panTo(posicionTeorica, { animate: false }); 
+            // El usuario pidió expresamente no centrar automáticamente mientras se desliza
         }
     }
 }
